@@ -175,3 +175,36 @@ Findings:
 
 ## Candidate SHA
 `d23ab54923393cd49c88ff615bdfa4c310c29282`
+
+## Fix Round 1
+### Fixes Implemented
+1. **`.github/workflows/pages.yml` URL validation**:
+   - Replaced URL extraction `grep` with a pipeline starting with `python3` `html.unescape` to properly process HTML entities.
+   - Updated the domain whitelist regex to use `([/?#].*)?$` instead of `([\\/].*)?$` to prevent basic authentication bypasses and backslash normalization bypasses (e.g., `\@attacker.com`).
+2. **`privacy-policy.html` Age requirement**:
+   - Removed section "14. Age requirement" and its Table of Contents entry as it should only be published after phase 4 is live.
+
+### RED Output (Fix Round 1)
+```bash
+$ echo '<a href="j&#97;vascript:alert(1)">' | grep -hioE '((https?:[\\/]*)|([\\/]{2})|(:[\\/]+)|javascript:|data:)[^"'"'"'`[:space:]><();,]+' | grep -viE '^((https?:[\\/]*)|([\\/]{2})|(:[\\/]+))(www\.duz\.events|app\.duz\.events|www\.w3\.org|ico\.org\.uk)([\\/].*)?$' || true
+# (Empty output, failed to detect payload)
+
+$ echo '<img src="https://www.duz.events\@attacker.com/leak">' | grep -hioE '((https?:[\\/]*)|([\\/]{2})|(:[\\/]+)|javascript:|data:)[^"'"'"'`[:space:]><();,]+' | grep -viE '^((https?:[\\/]*)|([\\/]{2})|(:[\\/]+))(www\.duz\.events|app\.duz\.events|www\.w3\.org|ico\.org\.uk)([\\/].*)?$' || true
+# (Empty output, payload bypassed whitelist)
+
+$ grep -n "14. Age requirement" privacy-policy.html
+92:                <li><a href="#14-age-requirement">14. Age requirement</a></li>
+417:        <h2 id="14-age-requirement">14. Age requirement</h2>
+```
+
+### GREEN Output (Fix Round 1)
+```bash
+$ echo '<a href="j&#97;vascript:alert(1)">' | python3 -c 'import sys, html; sys.stdout.write(html.unescape(sys.stdin.read()))' | grep -ioE '((https?:[\\/]*)|([\\/]{2})|(:[\\/]+)|javascript:|data:)[^"'"'"'`[:space:]><();,]+' | grep -viE '^((https?:[\\/]*)|([\\/]{2})|(:[\\/]+))(www\.duz\.events|app\.duz\.events|www\.w3\.org|ico\.org\.uk)([/?#].*)?$' || true
+javascript:alert
+
+$ echo '<img src="https://www.duz.events\@attacker.com/leak">' | python3 -c 'import sys, html; sys.stdout.write(html.unescape(sys.stdin.read()))' | grep -ioE '((https?:[\\/]*)|([\\/]{2})|(:[\\/]+)|javascript:|data:)[^"'"'"'`[:space:]><();,]+' | grep -viE '^((https?:[\\/]*)|([\\/]{2})|(:[\\/]+))(www\.duz\.events|app\.duz\.events|www\.w3\.org|ico\.org\.uk)([/?#].*)?$' || true
+https://www.duz.events\@attacker.com/leak
+
+$ grep -n "14. Age requirement" privacy-policy.html || echo "Clean"
+Clean
+```
