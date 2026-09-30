@@ -174,4 +174,4 @@ Findings:
 - Owner fill tokens remain in place until the owner replaces them prior to production deployment.
 
 ## Candidate SHA
-TBD (recorded upon commit)
+`d23ab54923393cd49c88ff615bdfa4c310c29282`
