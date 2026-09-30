@@ -53,4 +53,4 @@ SEO: 100
 None.
 
 ## Candidate SHA
-Will be supplied after commit.
+`d909763a70171e3a9271749f2d9f89954cf3087c`
