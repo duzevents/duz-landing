@@ -22,12 +22,19 @@ jobs:
       
       - name: Verify
         run: |
-          npx --yes html-validate@9.7.1 index.html 404.html
+          npx --yes html-validate@9.7.1 *.html
           
-          INVALID_URLS=$(grep -hioE '((https?:[\\/]*)|([\\/]{2})|(:[\\/]+)|javascript:|data:)[^"'"'"'`[:space:]><();,]+' index.html 404.html styles.css assets/script.js | sort | uniq | grep -viE '^((https?:[\\/]*)|([\\/]{2})|(:[\\/]+))(www\.duz\.events|app\.duz\.events|www\.w3\.org)([\\/].*)?$' || true)
+          INVALID_URLS=$(grep -hioE '((https?:[\\/]*)|([\\/]{2})|(:[\\/]+)|javascript:|data:)[^"'"'"'`[:space:]><();,]+' *.html styles.css assets/script.js | sort | uniq | grep -viE '^((https?:[\\/]*)|([\\/]{2})|(:[\\/]+))(www\.duz\.events|app\.duz\.events|www\.w3\.org|ico\.org\.uk)([\\/].*)?$' || true)
           if [ -n "$INVALID_URLS" ]; then
             echo "Error: Found disallowed third-party requests:"
             echo "$INVALID_URLS"
+            exit 1
+          fi
+
+      - name: Check placeholders
+        run: |
+          if grep -n '\[\[' *.html; then
+            echo "Error: Unfilled placeholders found in HTML files"
             exit 1
           fi
 
