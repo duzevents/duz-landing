@@ -16,15 +16,15 @@ jobs:
   check:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938
         with:
           persist-credentials: false
       
       - name: Verify
         run: |
-          npx --yes html-validate@9 index.html 404.html
+          npx --yes html-validate@9.7.1 index.html 404.html
           
-          INVALID_URLS=$(grep -hioE '(https?:)?//[^/"'"'"' >]+' index.html 404.html styles.css assets/script.js | sort | uniq | grep -viE '(https?:)?//(www\.duz\.events|app\.duz\.events|www\.w3\.org)$' || true)
+          INVALID_URLS=$(grep -hioE '["'"'"'](https?:)?[\\/]{2}[^"'"'"']+["'"'"']' index.html 404.html styles.css assets/script.js | sort | uniq | grep -viE '["'"'"'](https?:)?[\\/]{2}(www\.duz\.events|app\.duz\.events|www\.w3\.org)([\\/].*)?["'"'"']' || true)
           if [ -n "$INVALID_URLS" ]; then
             echo "Error: Found disallowed third-party requests:"
             echo "$INVALID_URLS"
@@ -41,7 +41,7 @@ jobs:
       contents: read
     environment: github-pages
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938
         with:
           persist-credentials: false
       
@@ -51,10 +51,10 @@ jobs:
           cp -r * _site/ 2>/dev/null || true
           rm -rf _site/.github _site/README.md _site/assets/og.html
       
-      - uses: actions/configure-pages@v6
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d
       
-      - uses: actions/upload-pages-artifact@v5
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9
         with:
           path: _site/
           
-      - uses: actions/deploy-pages@v5
+      - uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346

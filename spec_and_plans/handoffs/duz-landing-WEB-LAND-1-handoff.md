@@ -37,3 +37,21 @@ UNAVAILABLE — not verified on a real domain (GitHub Pages) directly.
 
 ## Candidate SHA
 TBD
+
+## Fix Round 2
+### Scope
+Resolved merge blockers:
+1. Supply Chain (Unpinned Actions and Dependencies): Pinned all GitHub Actions to exact commit SHAs and `html-validate` to `9.7.1` in `.github/workflows/pages.yml`.
+2. Incomplete Third-Party URL Regex Bypass: Updated the regex in `.github/workflows/pages.yml` to prevent backslash evasion.
+
+### Files Changed
+- `.github/workflows/pages.yml`
+
+### Verification
+```
+$ npx --yes html-validate@9.7.1 index.html 404.html
+(no output, success)
+
+$ INVALID_URLS=$(grep -hioE '["'"'"'](https?:)?[\\/]{2}[^"'"'"']+["'"'"']' index.html 404.html styles.css assets/script.js | sort | uniq | grep -viE '["'"'"'](https?:)?[\\/]{2}(www\.duz\.events|app\.duz\.events|www\.w3\.org)([\\/].*)?["'"'"']' || true); if [ -n "$INVALID_URLS" ]; then echo "Error: Found disallowed third-party requests:"; echo "$INVALID_URLS"; exit 1; else echo "Success"; fi
+Success
+```
