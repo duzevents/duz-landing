@@ -1,0 +1,60 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency: pages
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      
+      - name: Verify
+        run: |
+          npx --yes html-validate@9 index.html 404.html
+          
+          INVALID_URLS=$(grep -hoE 'https?://[^/"'"'"' >]+' index.html 404.html styles.css | sort | uniq | grep -vE 'https?://(www\.duz\.events|app\.duz\.events|www\.w3\.org)$' || true)
+          if [ -n "$INVALID_URLS" ]; then
+            echo "Error: Found disallowed third-party requests:"
+            echo "$INVALID_URLS"
+            exit 1
+          fi
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: check
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+      contents: read
+    environment: github-pages
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      
+      - name: Stage files
+        run: |
+          mkdir -p _site
+          cp -r * _site/ 2>/dev/null || true
+          rm -rf _site/.github _site/README.md _site/assets/og.html
+      
+      - uses: actions/configure-pages@v6
+      
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site/
+          
+      - uses: actions/deploy-pages@v5
