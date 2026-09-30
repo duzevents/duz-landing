@@ -208,3 +208,36 @@ https://www.duz.events\@attacker.com/leak
 $ grep -n "14. Age requirement" privacy-policy.html || echo "Clean"
 Clean
 ```
+
+## Fix Round 2
+### Fixes Implemented
+1. **`.github/workflows/pages.yml` html-validate**:
+   - Replaced `html-validate *.html` with `html-validate -- *.html` to prevent wildcard injection (e.g. if `--config.html` exists).
+2. **`.github/workflows/pages.yml` URL extraction bypasses**:
+   - Replaced `sys.stdin.read()` with `sys.stdin.buffer.read().decode('utf-8', 'replace')` in the python script to handle invalid UTF-8 bytes without crashing (Fail-Open fix).
+   - Added `re.sub(r"[\s\x00-\x1F\x7F]", "", ...)` in the python script to strip ALL whitespace and C0 control characters from the HTML *after* unescaping and BEFORE passing to grep. This neutralizes whitespace bypasses where C0 characters decodes to spaces (e.g. `java&#x09;script:` becoming `javascript:` and thus caught by grep), and ensures URLs are not truncated prematurely by spaces in the original HTML.
+
+### RED Output (Fix Round 2)
+```bash
+# Whitespace bypass
+$ echo -e '<a href="java\tscript:alert(1)">' | python3 -c 'import sys, html; sys.stdout.write(html.unescape(sys.stdin.read()))' | grep -ioE '((https?:[\/]*)|([\/]{2})|(:[\/]+)|javascript:|data:)[^"'\''"`[:space:]><();,]+'
+# (Empty output, failed to detect javascript scheme)
+
+# Invalid UTF-8 bytes crash
+$ printf 'Invalid UTF-8: \xff\n' | python3 -c 'import sys, html; sys.stdout.write(html.unescape(sys.stdin.read()))'
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "<frozen codecs>", line 322, in decode
+UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 15: invalid start byte
+```
+
+### GREEN Output (Fix Round 2)
+```bash
+# Whitespace bypass fixed
+$ echo -e '<a href="java\tscript:alert(1)">' | python3 -c 'import sys, html, re; sys.stdout.write(re.sub(r"[\s\x00-\x1F\x7F]", "", html.unescape(sys.stdin.buffer.read().decode("utf-8", "replace"))))' | grep -ioE '((https?:[\/]*)|([\/]{2})|(:[\/]+)|javascript:|data:)[^"'\''"`><();,]+'
+javascript:alert
+
+# Invalid UTF-8 bytes handled
+$ printf 'Invalid UTF-8: \xff\n' | python3 -c 'import sys, html, re; sys.stdout.write(re.sub(r"[\s\x00-\x1F\x7F]", "", html.unescape(sys.stdin.buffer.read().decode("utf-8", "replace"))))'
+InvalidUTF-8:
+```
