@@ -174,7 +174,7 @@ Findings:
 - Owner fill tokens remain in place until the owner replaces them prior to production deployment.
 
 ## Candidate SHA
-`d23ab54923393cd49c88ff615bdfa4c310c29282`
+`08940c8cb2d67467dbaf94e015d77beb9184709a`
 
 ## Fix Round 1
 ### Fixes Implemented
