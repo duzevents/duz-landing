@@ -24,7 +24,7 @@ jobs:
         run: |
           npx --yes html-validate@9 index.html 404.html
           
-          INVALID_URLS=$(grep -hoE 'https?://[^/"'"'"' >]+' index.html 404.html styles.css | sort | uniq | grep -vE 'https?://(www\.duz\.events|app\.duz\.events|www\.w3\.org)$' || true)
+          INVALID_URLS=$(grep -hioE '(https?:)?//[^/"'"'"' >]+' index.html 404.html styles.css assets/script.js | sort | uniq | grep -viE '(https?:)?//(www\.duz\.events|app\.duz\.events|www\.w3\.org)$' || true)
           if [ -n "$INVALID_URLS" ]; then
             echo "Error: Found disallowed third-party requests:"
             echo "$INVALID_URLS"

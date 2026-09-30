@@ -22,8 +22,9 @@
     <meta name="theme-color" content="#3B0F70">
     <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self';">
     <link rel="stylesheet" href="/styles.css">
-    <script>document.documentElement.classList.add('js');</script>
+    <script src="/assets/script.js"></script>
 </head>
 <body>
     <header class="header">
@@ -203,17 +204,5 @@
             <p>&copy; 2026 Duz</p>
         </div>
     </footer>
-
-    <script>
-        const observer = new IntersectionObserver(entries => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, { threshold: 0.1 });
-        document.querySelectorAll('.section').forEach(el => observer.observe(el));
-    </script>
 </body>
 </html>
