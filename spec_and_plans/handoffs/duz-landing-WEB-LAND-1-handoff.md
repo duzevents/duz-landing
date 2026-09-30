@@ -89,3 +89,67 @@ $ npx --yes html-validate@9.7.1 index.html 404.html
 $ INVALID_URLS=$(grep -hioE '["'"'"'][[:space:]]*((https?:[\\/]*)|([\\/]{2})|(:[\\/]+))[^"'"'"']+["'"'"']' index.html 404.html styles.css assets/script.js | sort | uniq | grep -viE '["'"'"'][[:space:]]*((https?:[\\/]*)|([\\/]{2})|(:[\\/]+))(www\.duz\.events|app\.duz\.events|www\.w3\.org)([\\/][^"'"'"']*)?[[:space:]]*["'"'"']' || true); if [ -n "$INVALID_URLS" ]; then echo "Error: Found disallowed third-party requests:"; echo "$INVALID_URLS"; exit 1; else echo "Success"; fi
 Success
 ```
+
+## Fix Round 4
+### Scope
+Resolved merge blockers:
+1. CSS Unquoted `url()` Bypass: In CSS, `url()` does not require quotes (e.g. `background-image: url(https://evildomain.com/image.png)` or `@import url(//evildomain.com/styles.css)`). Dropped strict quote requirements so unquoted `url()` targets are extracted and evaluated.
+2. JavaScript Backtick Bypass: JS template literals (e.g. `fetch(\`https://evil.com\`)` or `fetch(\`//evil.com\`)`) bypassed quote-delimited regex. Dropped strict quote requirements to extract backtick-delimited URLs.
+3. HTML Entities & Multiline Formatting: Whitespace HTML entities (e.g. `src="&#x09;https://attacker.com"`) or multiline attributes (e.g. `src="\nhttps://attacker.com"`) bypassed single-line quote patterns.
+4. Alternative Protocols: Catch `javascript:` and `data:` schemes in addition to `https://`, `http://`, and protocol-relative `//`.
+
+Updated `.github/workflows/pages.yml` extraction regex to scan broadly for `((https?:[\\/]*)|([\\/]{2})|(:[\\/]+)|javascript:|data:)` followed by URL characters up to delimiters `["'`[:space:]><();,]`. Verified that local root-relative paths (`/assets/...`, `/styles.css`), CSS selectors (`[data-launched]`), and JS comments/operators are not falsely flagged.
+
+### Files Changed
+- `.github/workflows/pages.yml`
+- `spec_and_plans/handoffs/duz-landing-WEB-LAND-1-handoff.md`
+
+### RED / GREEN Output
+RED:
+With prior regex requiring surrounding quotes `["']...["']`, unquoted CSS `url()`, JS template literals with backticks, HTML entity whitespace, and alternative protocols bypassed detection:
+```
+$ echo 'background-image: url(https://evildomain.com/image.png); @import url(//evildomain.com/styles.css);' | grep -hioE '["'"'"'][[:space:]]*((https?:[\\/]*)|([\\/]{2})|(:[\\/]+))[^"'"'"']+["'"'"']' || true
+(empty output - bypass succeeds)
+
+$ echo 'fetch(`https://evil.com`); fetch(`//evil.com`);' | grep -hioE '["'"'"'][[:space:]]*((https?:[\\/]*)|([\\/]{2})|(:[\\/]+))[^"'"'"']+["'"'"']' || true
+(empty output - bypass succeeds)
+
+$ echo '<script src="&#x09;https://attacker.com"></script>' | grep -hioE '["'"'"'][[:space:]]*((https?:[\\/]*)|([\\/]{2})|(:[\\/]+))[^"'"'"']+["'"'"']' || true
+(empty output - bypass succeeds)
+
+$ echo '<iframe src="javascript:alert(1)"> <script src="data:text/html,test"></script>' | grep -hioE '["'"'"'][[:space:]]*((https?:[\\/]*)|([\\/]{2})|(:[\\/]+))[^"'"'"']+["'"'"']' || true
+(empty output - bypass succeeds)
+```
+
+GREEN:
+With updated regex `((https?:[\\/]*)|([\\/]{2})|(:[\\/]+)|javascript:|data:)[^"'`[:space:]><();,]+`:
+```
+$ echo 'background-image: url(https://evildomain.com/image.png); @import url(//evildomain.com/styles.css);' | grep -hioE '((https?:[\\/]*)|([\\/]{2})|(:[\\/]+)|javascript:|data:)[^"'"'"'`[:space:]><();,]+' | sort | uniq | grep -viE '^((https?:[\\/]*)|([\\/]{2})|(:[\\/]+))(www\.duz\.events|app\.duz\.events|www\.w3\.org)([\\/].*)?$' || true
+//evildomain.com/styles.css
+https://evildomain.com/image.png
+
+$ echo 'fetch(`https://evil.com`); fetch(`//evil.com`);' | grep -hioE '((https?:[\\/]*)|([\\/]{2})|(:[\\/]+)|javascript:|data:)[^"'"'"'`[:space:]><();,]+' | sort | uniq | grep -viE '^((https?:[\\/]*)|([\\/]{2})|(:[\\/]+))(www\.duz\.events|app\.duz\.events|www\.w3\.org)([\\/].*)?$' || true
+//evil.com
+https://evil.com
+
+$ echo '<script src="&#x09;https://attacker.com"></script>' | grep -hioE '((https?:[\\/]*)|([\\/]{2})|(:[\\/]+)|javascript:|data:)[^"'"'"'`[:space:]><();,]+' | sort | uniq | grep -viE '^((https?:[\\/]*)|([\\/]{2})|(:[\\/]+))(www\.duz\.events|app\.duz\.events|www\.w3\.org)([\\/].*)?$' || true
+https://attacker.com
+
+$ echo '<iframe src="javascript:alert(1)"> <script src="data:text/html,test"></script>' | grep -hioE '((https?:[\\/]*)|([\\/]{2})|(:[\\/]+)|javascript:|data:)[^"'"'"'`[:space:]><();,]+' | sort | uniq | grep -viE '^((https?:[\\/]*)|([\\/]{2})|(:[\\/]+))(www\.duz\.events|app\.duz\.events|www\.w3\.org)([\\/].*)?$' || true
+data:text/html
+javascript:alert
+```
+
+Repository check:
+```
+$ npx --yes html-validate@9.7.1 index.html 404.html
+(Exit code 0, no output)
+
+$ INVALID_URLS=$(grep -hioE '((https?:[\\/]*)|([\\/]{2})|(:[\\/]+)|javascript:|data:)[^"'"'"'`[:space:]><();,]+' index.html 404.html styles.css assets/script.js | sort | uniq | grep -viE '^((https?:[\\/]*)|([\\/]{2})|(:[\\/]+))(www\.duz\.events|app\.duz\.events|www\.w3\.org)([\\/].*)?$' || true); if [ -n "$INVALID_URLS" ]; then echo "Error: Found disallowed third-party requests:"; echo "$INVALID_URLS"; exit 1; else echo "Success"; fi
+Success
+```
+
+### Limitations
+- Runtime dynamic string concatenation in JavaScript (e.g. `const u = "https" + ":" + "/" + "/evil.com"; fetch(u);`) cannot be statically detected by regex grep; however, runtime browser exfiltration is blocked by the Content Security Policy meta tag (`default-src 'self'`).
+- UNAVAILABLE — not verified on a real domain (GitHub Pages) directly.
+
