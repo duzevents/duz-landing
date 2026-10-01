@@ -36,7 +36,7 @@ Success
 UNAVAILABLE — not verified on a real domain (GitHub Pages) directly.
 
 ## Candidate SHA
-TBD
+fd31ab52284a4d7b6ea87c2d3d19e22f3cf7b26c
 
 ## Fix Round 2
 ### Scope
