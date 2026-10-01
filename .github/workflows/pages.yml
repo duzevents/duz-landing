@@ -16,7 +16,7 @@ jobs:
   check:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       
@@ -24,7 +24,7 @@ jobs:
         run: |
           npx --yes html-validate@9.7.1 -- *.html
           
-          INVALID_URLS=$(cat *.html styles.css assets/script.js | python3 -c 'import sys, html, re; sys.stdout.write(re.sub(r"[\s\x00-\x1F\x7F]", "", html.unescape(sys.stdin.buffer.read().decode("utf-8", "replace"))))' | grep -ioE '((https?:[\\/]*)|([\\/]{2})|(:[\\/]+)|javascript:|data:)[^"'"'"'`[:space:]><();,]+' | sort | uniq | grep -viE '^((https?:[\\/]*)|([\\/]{2})|(:[\\/]+))(www\.duz\.events|app\.duz\.events|www\.w3\.org|ico\.org\.uk)([/?#].*)?$' || true)
+          INVALID_URLS=$(grep -hioE '((https?:[\\/]*)|([\\/]{2})|(:[\\/]+)|javascript:|data:)[^"'"'"'`[:space:]><();,]+' index.html 404.html privacy-policy.html consents.html styles.css assets/script.js | sort | uniq | grep -viE '^((https?:[\\/]*)|([\\/]{2})|(:[\\/]+))(www\.duz\.events|app\.duz\.events|www\.w3\.org|ico\.org\.uk)([\\/].*)?$' || true)
           if [ -n "$INVALID_URLS" ]; then
             echo "Error: Found disallowed third-party requests:"
             echo "$INVALID_URLS"
@@ -48,15 +48,24 @@ jobs:
       contents: read
     environment: github-pages
     steps:
-      - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       
-      - name: Stage files
+      - name: Stage files (allowlist only)
         run: |
-          mkdir -p _site
-          cp -r * _site/ 2>/dev/null || true
-          rm -rf _site/.github _site/README.md _site/assets/og.html
+          set -eu
+          mkdir -p _site/assets
+          for f in index.html 404.html styles.css robots.txt sitemap.xml CNAME privacy-policy.html consents.html; do
+            if [ -f "$f" ]; then cp "$f" _site/; fi
+          done
+          cp -R assets/. _site/assets/
+          rm -f _site/assets/og.html
+          if find _site \( -name '*.md' -o -path '*/spec_and_plans*' -o -path '*/docs*' -o -name '.*' \) | grep -q .; then
+            echo "Refusing to publish internal files:"; find _site \( -name '*.md' -o -path '*/spec_and_plans*' -o -path '*/docs*' -o -name '.*' \)
+            exit 1
+          fi
+          find _site -type f | sort
       
       - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d
       

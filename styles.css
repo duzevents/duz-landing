@@ -497,13 +497,11 @@ h3 {
   justify-content: center;
   margin: 4px 0;
 }
-
 .footer-links a {
   color: #6b6670;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
-
 .footer-links a:hover {
   color: var(--ink);
 }
