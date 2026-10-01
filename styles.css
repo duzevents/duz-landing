@@ -490,6 +490,22 @@ h3 {
   gap: 8px;
 }
 
+.footer-links {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 4px 0;
+}
+.footer-links a {
+  color: #6b6670;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.footer-links a:hover {
+  color: var(--ink);
+}
+
 /* Focus rings */
 :focus-visible {
   outline: 2px solid var(--purple-2);
