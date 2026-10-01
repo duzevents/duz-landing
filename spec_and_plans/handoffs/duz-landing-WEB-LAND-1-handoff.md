@@ -36,7 +36,7 @@ Success
 UNAVAILABLE — not verified on a real domain (GitHub Pages) directly.
 
 ## Candidate SHA
-TBD
+fd31ab52284a4d7b6ea87c2d3d19e22f3cf7b26c
 
 ## Fix Round 2
 ### Scope
@@ -154,6 +154,34 @@ Success
 - UNAVAILABLE — not verified on a real domain (GitHub Pages) directly.
 
 
+## Fix Round 5
+### Scope
+Resolved merge blocker:
+1. Public Site Exfiltration: The deploy action was staging the whole repository into `_site/` (including `spec_and_plans/`, `docs/`, and handoffs) making them public. Updated the `Stage files` step in `.github/workflows/pages.yml` to explicitly copy only allowed static assets (`*.html`, `styles.css`, `CNAME`, `robots.txt`, `sitemap.xml`, and the `assets/` directory) rather than copying everything.
+
+### Files Changed
+- `.github/workflows/pages.yml`
+- `spec_and_plans/handoffs/duz-landing-WEB-LAND-1-handoff.md`
+
+### RED / GREEN Output
+RED:
+With prior staging logic:
+```
+$ mkdir -p _site; cp -r * _site/ 2>/dev/null || true; rm -rf _site/.github _site/README.md _site/assets/og.html
+$ ls -d _site/spec_and_plans
+_site/spec_and_plans
+```
+
+GREEN:
+With updated staging logic explicitly copying allowed files:
+```
+$ mkdir -p _site; cp *.html styles.css CNAME robots.txt sitemap.xml _site/ 2>/dev/null || true; cp -r assets _site/ 2>/dev/null || true
+$ ls -d _site/spec_and_plans
+ls: _site/spec_and_plans: No such file or directory
+```
+
+### Limitations
+- UNAVAILABLE — not verified on a real domain (GitHub Pages) directly.
 ## Claude final review — fix B1 applied by Claude (owner request, 2026-10-01)
 - `pages.yml` now stages an **allowlist** (`index.html`, `404.html`, `styles.css`, `robots.txt`, `sitemap.xml`, `CNAME`,
   `privacy-policy.html` and `consents.html` when present, and `assets/` minus `og.html`). It fails if `_site` contains any
