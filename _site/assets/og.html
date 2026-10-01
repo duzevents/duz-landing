@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>OG Image</title>
+    <style>
+        :root {
+            --bg: #3B0F70;
+            --ink: #171320;
+            --purple-2: #6D28D9;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            width: 1200px;
+            height: 630px;
+            background-color: var(--bg);
+            color: #FFFFFF;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .wordmark {
+            font-size: 80px;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            text-transform: lowercase;
+            margin-bottom: 24px;
+        }
+        .tagline {
+            font-size: 48px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 64px;
+            text-align: center;
+            max-width: 900px;
+            line-height: 1.2;
+        }
+        .waveforms {
+            display: flex;
+            gap: 8px;
+            height: 120px;
+            align-items: center;
+        }
+        .waveforms .bar {
+            width: 12px;
+            height: 100%;
+            background-color: #FFFFFF;
+            border-radius: 12px;
+            transform: scaleY(0.2);
+        }
+        .waveforms .bar:nth-child(2n) {
+            background-color: var(--purple-2);
+        }
+        
+        .waveforms .bar:nth-child(1) { transform: scaleY(0.4); }
+        .waveforms .bar:nth-child(2) { transform: scaleY(0.8); }
+        .waveforms .bar:nth-child(3) { transform: scaleY(0.3); }
+        .waveforms .bar:nth-child(4) { transform: scaleY(0.9); }
+        .waveforms .bar:nth-child(5) { transform: scaleY(0.6); }
+        .waveforms .bar:nth-child(6) { transform: scaleY(1.0); }
+        .waveforms .bar:nth-child(7) { transform: scaleY(0.5); }
+        .waveforms .bar:nth-child(8) { transform: scaleY(0.2); }
+        .waveforms .bar:nth-child(9) { transform: scaleY(0.7); }
+        .waveforms .bar:nth-child(10) { transform: scaleY(0.4); }
+        .waveforms .bar:nth-child(11) { transform: scaleY(0.8); }
+        .waveforms .bar:nth-child(12) { transform: scaleY(0.3); }
+    </style>
+</head>
+<body>
+    <div class="wordmark">duz</div>
+    <div class="tagline">Same fun. Different people, different places.</div>
+    <div class="waveforms">
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+    </div>
+</body>
+</html>
