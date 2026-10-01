@@ -174,7 +174,7 @@ Findings:
 - Owner fill tokens remain in place until the owner replaces them prior to production deployment.
 
 ## Candidate SHA
-`08940c8cb2d67467dbaf94e015d77beb9184709a`
+`8248d1d44e65f642f8bf450edb7d76345036f357`
 
 ## Fix Round 1
 ### Fixes Implemented
@@ -240,4 +240,24 @@ javascript:alert
 # Invalid UTF-8 bytes handled
 $ printf 'Invalid UTF-8: \xff\n' | python3 -c 'import sys, html, re; sys.stdout.write(re.sub(r"[\s\x00-\x1F\x7F]", "", html.unescape(sys.stdin.buffer.read().decode("utf-8", "replace"))))'
 InvalidUTF-8:
+```
+
+## Fix Round 3
+### Fixes Implemented
+1. **`.github/workflows/pages.yml` URL extraction logic**:
+   - Removed the aggressive whitespace stripping (`re.sub(r"[\s\x00-\x1F\x7F]", "", ...)`) from the python unescaping logic. 
+   - Unescaped HTML is simply decoded (with `replace` for invalid UTF-8 bytes to ensure fail-open behavior) and parsed. This resolves the false positive CI failures where plain text unquoted URLs with whitespace in the document were being merged into single strings and causing regex validation to fail.
+
+### RED Output (Fix Round 3)
+```bash
+# Whitespace bypass false positive
+$ echo -n "Check this out https://example.com/foo bar" | python3 -c 'import sys, html, re; sys.stdout.write(re.sub(r"[\s\x00-\x1F\x7F]", "", html.unescape(sys.stdin.buffer.read().decode("utf-8", "replace"))))' | grep -ioE '((https?:[\/]*)|([\/]{2})|(:[\/]+)|javascript:|data:)[^"'\''"`[:space:]><();,]+'
+https://example.com/foobar
+```
+
+### GREEN Output (Fix Round 3)
+```bash
+# Whitespace bypass false positive fixed
+$ echo -n "Check this out https://example.com/foo bar" | python3 -c 'import sys, html; sys.stdout.write(html.unescape(sys.stdin.buffer.read().decode("utf-8", "replace")))' | grep -ioE '((https?:[\/]*)|([\/]{2})|(:[\/]+)|javascript:|data:)[^"'\''"`[:space:]><();,]+'
+https://example.com/foo
 ```
