@@ -319,3 +319,29 @@ None
 
 ## Candidate SHA
 ad7297a3833e73e0241cce54d468f27d2ca01902
+
+## Fix Round 5 (WEB-LAND-2 Fix 1)
+### Scope
+Task ID: WEB-LAND-2 Fix 1
+- Merge `origin/main` into `feat/web-land-2` and resolve conflicts (`styles.css`, `index.html`, `404.html`, `.github/workflows/pages.yml`).
+- Restore main's CI check (per-file `grep -hioE`) in `pages.yml`.
+- Add `privacy-policy.html` and `consents.html` to the file list of `pages.yml` CI URL check.
+- Add `ico.org.uk` to the allowlist of the CI URL check.
+- Maintain #1's allowlist staging and internal-file guard in `pages.yml`.
+- Maintain #4's Contact us link and combine all three links ("Privacy policy", "Your privacy choices", and "Contact us") in the footer's `.footer-links` section.
+
+### Files Changed
+- `.github/workflows/pages.yml`
+- `index.html`
+- `404.html`
+- `privacy-policy.html`
+- `consents.html`
+- `styles.css`
+
+### Actions taken
+- Merged `origin/main` and resolved conflicts in `index.html`, `404.html`, and `styles.css`.
+- Fixed broken plain text links (e.g. `https://www.duz.events404.html`) that were missing slashes due to a previous commit on the branch.
+- Updated `pages.yml` to restore `main`'s check: `grep -hioE ... index.html 404.html privacy-policy.html consents.html styles.css assets/script.js ...`.
+
+### Candidate SHA
+$(git rev-parse HEAD)
