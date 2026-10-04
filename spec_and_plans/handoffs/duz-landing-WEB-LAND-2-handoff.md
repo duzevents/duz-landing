@@ -345,3 +345,9 @@ Task ID: WEB-LAND-2 Fix 1
 
 ### Candidate SHA
 $(git rev-parse HEAD)
+
+## WEB-LAND-2 Fixes
+- Reverted `index.html` canonical and og:url to `https://www.duz.events/` (trailing slash). Left `[[...]]` placeholders as requested.
+
+## Candidate SHA
+c0573d4f30277cf67877042886f3e1b3ca31595d
