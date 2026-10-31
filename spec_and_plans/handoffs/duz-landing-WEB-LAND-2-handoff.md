@@ -351,3 +351,18 @@ $(git rev-parse HEAD)
 
 ## Candidate SHA
 c0573d4f30277cf67877042886f3e1b3ca31595d
+
+---
+
+## Owner fills (Claude, 2026-10-31, on the owner's word)
+Owner supplied (chat, 2026-10-24): controller **Armaan Kanayalal Kotecha** as an individual (no company), contact
+**armaan@duz.events**, UK-resident (no UK representative), ICO fee to be paid. Applied:
+- `[[LEGAL ENTITY NAME]]` → Armaan Kanayalal Kotecha; `[[PUBLICATION DATE]]` → 31 October 2026 (both pages).
+- Company-number and UK-representative lines deleted; supplier list confirmed as listed (Railway, Postmark, Apple,
+  Google, GitHub, Namecheap, Slack) and the reminder line deleted.
+- Postal address omitted (owner's home address; email contact satisfies UK GDPR Art. 13(1)(a)); the "or write to"
+  block in §16 removed accordingly.
+- `privacy@duz.events` → `armaan@duz.events` throughout (the owner's working address; no privacy@ alias confirmed).
+- §14 Age requirement still withheld until AGE-1 phase 4 is live.
+
+Checks: `npx html-validate@9.7.1 -- *.html` → no errors; `grep -n '\[\[' *.html` → none.
